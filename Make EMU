@@ -1,0 +1,204 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main() {
+	FILE* fp;
+	char str1[100], arr[10];
+	char SYMBOLTABLE[100] = {0};
+	int SYMBOLTABLE_sub[100] = {0};
+	char* token;
+	int what = 0;
+	int adress = 0;
+	int adress_sub = 0;
+	int Table_Num = 0;
+	int TS = 0;
+	int countcount = 0;
+	int Table_count = 0;
+	int cc = 0;
+	fp = fopen("a.txt", "r");
+	if (fp == NULL) {
+		printf("파일 읽기모드 열기에 실패");
+		return -1;
+	}
+
+	while (!feof(fp)) {
+		fgets(str1, 100, fp);
+		if (str1 == " \n")
+		{
+			continue;
+		}
+
+		if (str1[0] == ' ' || str1[0] == '\t')
+		{
+			for (int i = 0; i < strlen(str1); i++)
+			{
+				if (str1[i] != ' ')
+				{
+					continue;
+				}
+			}
+		}
+		else
+		{
+			token = strtok(str1, " ,\t:");
+			if (strcmp(token, "MAIN") == 0) {
+				printf("%s[MAIN]", token);
+			}
+			else if (strcmp(token, "LOOP") == 0 || strcmp(token, "L1") == 0 || strcmp(token, "L2") == 0)
+			{
+				printf("%s[LOOP]", token);
+			}
+			else
+			{
+				printf("%s[REAL SYMBOL]", token);
+				for (int y = 0; y != strlen(token); y++)
+				{
+					SYMBOLTABLE[y+ TS] = token[y];
+					Table_Num++;
+				} 
+				TS = Table_Num + 1;
+				SYMBOLTABLE[TS] = '\0';
+				SYMBOLTABLE_sub[Table_count] = adress;
+				Table_count += 1;
+				token = strtok(NULL, " ,\t:");
+				printf("%s ", token);
+				if (strcmp(token, "DB")==0) {
+					adress_sub = 1;
+				}
+				else if (strcmp(token, "DW") == 0) {
+					adress_sub = 2;
+				}
+				token = strtok(NULL, " ,\t:\0");
+				for (int w = 0; token != NULL; w++)
+				{
+					adress += adress_sub;
+					printf("%s ", token);
+					token = strtok(NULL, " ,\t:\0");
+				}
+				continue;
+			}
+			what++;
+		}
+
+		if (what == 0)
+		{
+			token = strtok(str1, " ,\t:");
+		}
+		else
+		{
+
+			token = strtok(NULL, " ,\t:");
+		}
+		what = 0;
+		
+		if (strcmp(token, "MOV") == 0 || strcmp(token, "CMP") == 0
+			|| strcmp(token, "SUB") == 0 || strcmp(token, "ADD") == 0) {
+			printf("%s[MOV,CMP,SUB,ADD] ", token);
+
+			token = strtok(NULL, " ,\t:");
+			
+			if (strcmp(token, "AS") == 0 || strcmp(token, "BS") == 0
+				|| strcmp(token, "CS") == 0 || strcmp(token, "DS") == 0
+				|| strcmp(token, "AS\n") == 0 || strcmp(token, "BS\n") == 0
+				|| strcmp(token, "CS\n") == 0 || strcmp(token, "DS\n") == 0)
+			{
+				printf("%s [AS,BS,CS,DS]", token);
+				token = strtok(NULL, " ,\t:");
+				printf("%s\n", token);
+				continue;
+			}
+
+			if (strcmp(token, "AX") == 0 || strcmp(token, "BX") == 0
+				|| strcmp(token, "CX") == 0 || strcmp(token, "DX") == 0) {
+				printf("%s[REG]", token);
+			}
+			else {
+				printf("%s[SYMBOL]", token);
+			}
+
+			token = strtok(NULL, " ,\t:");
+			arr[0] = token[0];
+			if (strcmp(token, "AX") == 0 || strcmp(token, "BX") == 0
+				|| strcmp(token, "CX") == 0 || strcmp(token, "DX") == 0
+				|| strcmp(token, "AX\n") == 0 || strcmp(token, "BX\n") == 0
+				|| strcmp(token, "CX\n") == 0 || strcmp(token, "DX\n") == 0) {
+				printf("%s[REG]\n", token);
+				printf("상대적 주소 : %d ~ ", adress);
+				adress = adress + 2;
+				printf("%d\n", adress);
+			}
+
+			else if (isdigit(arr[0])) {
+				printf("%s\n", token);
+				printf("상대적 주소 : %d ~ ", adress);
+				adress = adress + 3;
+				printf("%d\n", adress);
+				printf("\n");
+			}
+			else {
+				if (strcmp(token, "AS") == 0 || strcmp(token, "BS") == 0
+					|| strcmp(token, "CS") == 0 || strcmp(token, "DS") == 0
+					|| strcmp(token, "AS\n") == 0 || strcmp(token, "BS\n") == 0
+					|| strcmp(token, "CS\n") == 0 || strcmp(token, "DS\n") == 0)
+				{
+					printf("%s[AS,BS,CS,DS]", token);
+				}
+				else {
+					printf("%s[SYMBOL]\n", token);
+					printf("상대적 주소 : %d ~ ", adress);
+					adress = adress + 4;
+					printf("%d\n", adress);
+				}
+			}
+
+
+		}
+		else if (strcmp(token, "JMP") == 0) {
+			printf("%s[JMP] ", token);
+			token = strtok(NULL, " ,\t:");
+			printf("%s\n", token);
+			printf("상대적 주소 : %d ~ ", adress);
+			adress = adress + 3;
+			printf("%d\n", adress);
+		}
+		else if (strcmp(token, "JA") == 0 || strcmp(token, "JB") == 0 || strcmp(token, "JE") == 0) {
+			printf("%s[JA, JB, JE] ", token);
+			token = strtok(NULL, " ,\t:");
+			printf("%s\n", token);
+			printf("상대적 주소 : %d ~ ", adress);
+			adress = adress + 2;
+			printf("%d\n", adress);
+			printf("\n");
+		}
+		else if (strcmp(token, "INT") == 0) {
+			printf("%s[INT] ", token);
+			token = strtok(NULL, " ,");
+			printf("%s", token);
+			printf("\n");
+			printf("상대적 주소 : %d ~ ", adress);
+			adress = adress + 2;
+			printf("%d\n", adress);
+			printf("\n");
+		}
+		else {
+			printf("%s[NOTTHING]\n", token);
+		}
+	}
+	fclose(fp);
+	for(int c = 0; c != Table_count; c++)
+	{
+		for (int z = 0+cc; SYMBOLTABLE[z] != '\0'; z++)
+		{
+			printf("%c", SYMBOLTABLE[z]);
+			cc += 1;
+		}
+		
+		printf("저장된 주소: %d", SYMBOLTABLE_sub[countcount]);
+		countcount += 1;
+		cc += 1;
+		printf("\n");
+	}
+	return 0;
+}
